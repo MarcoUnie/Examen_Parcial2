@@ -6,10 +6,13 @@ from clase_libro_genero import generolibro
 from clase_libros import Book
 
 empleado = Employee("Admin")
+usuarios_creados = {}  # Almacenar instancias de usuarios en memoria
 
 # Funciones conectadas a Gradio
 
 def registrar_usuario(nombre):
+    if nombre not in usuarios_creados:
+        usuarios_creados[nombre] = User(nombre)
     return empleado.register_user(nombre)
 
 def agregar_libro(titulo, autor, genero):
@@ -21,6 +24,21 @@ def agregar_libro(titulo, autor, genero):
 
 def consultar_disponibilidad(titulo):
     return empleado.consultar_disponibilidad(titulo)
+
+def realizar_prestamo(nombre_usuario, titulo_libro):
+    if nombre_usuario not in usuarios_creados:
+        usuarios_creados[nombre_usuario] = User(nombre_usuario)
+    user = usuarios_creados[nombre_usuario]
+    book = Book(titulo_libro, "", generolibro.FICTION)  # Autor y género no necesarios para préstamo
+    return user.borrow_book(book)
+
+def realizar_devolucion(nombre_usuario, titulo_libro):
+    if nombre_usuario not in usuarios_creados:
+        return "❌ Usuario no encontrado."
+    user = usuarios_creados[nombre_usuario]
+    book = Book(titulo_libro, "", generolibro.FICTION)
+    user.return_book(book)
+    return "✅ Devolución procesada."
 
 # Interfaz Gradio
 with gr.Blocks() as demo:
@@ -45,6 +63,20 @@ with gr.Blocks() as demo:
         btn_consultar = gr.Button("Consultar")
         resultado_disp = gr.Textbox(label="Estado")
         btn_consultar.click(consultar_disponibilidad, inputs=titulo_disp, outputs=resultado_disp)
+
+    with gr.Tab("Realizar Préstamo"):
+        nombre_usuario_p = gr.Textbox(label="Nombre del usuario")
+        titulo_libro_p = gr.Textbox(label="Título del libro")
+        btn_prestamo = gr.Button("Prestar")
+        salida_prestamo = gr.Textbox(label="Resultado")
+        btn_prestamo.click(realizar_prestamo, inputs=[nombre_usuario_p, titulo_libro_p], outputs=salida_prestamo)
+
+    with gr.Tab("Realizar Devolución"):
+        nombre_usuario_d = gr.Textbox(label="Nombre del usuario")
+        titulo_libro_d = gr.Textbox(label="Título del libro")
+        btn_devolucion = gr.Button("Devolver")
+        salida_devolucion = gr.Textbox(label="Resultado")
+        btn_devolucion.click(realizar_devolucion, inputs=[nombre_usuario_d, titulo_libro_d], outputs=salida_devolucion)
 
 # Ejecutar interfaz
 if __name__ == "__main__":

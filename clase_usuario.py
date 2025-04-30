@@ -35,21 +35,42 @@ class User:
                 self._borrow_history.append(book)  # Añadir el libro al historial del usuario
                 return f"✅ Préstamo realizado: {book.get_titulo()}"
 
+    def borrow_book(self, book: Book):
+        with sqlite3.connect("biblioteca.db") as conn:
+            c = conn.cursor()
+            c.execute("SELECT id FROM usuarios WHERE nombre = ?", (self._name,))
+            user = c.fetchone()
+            c.execute("SELECT id, prestado FROM libros WHERE titulo = ?", (book.get_titulo(),))
+            libro = c.fetchone()
+
+            if not user:
+                return "❌ Usuario no encontrado."
+            elif not libro:
+                return "❌ Libro no encontrado."
+            elif libro[1] == 1:
+                return "📕 Libro ya prestado."
+            else:
+                c.execute("INSERT INTO prestamos (usuario_id, libro_id) VALUES (?, ?)", (user[0], libro[0]))
+                c.execute("UPDATE libros SET prestado = 1 WHERE id = ?", (libro[0],))
+                self._borrow_history.append(book.get_titulo())  # Guarda solo el título
+                return f"✅ Préstamo realizado: {book.get_titulo()}"
+
     def return_book(self, book: Book):
-        if book in self._borrow_history:
+        titulo = book.get_titulo()
+        if titulo in self._borrow_history:
             with sqlite3.connect("biblioteca.db") as conn:
                 c = conn.cursor()
-                c.execute("SELECT id FROM libros WHERE titulo = ?", (book.get_titulo(),))
+                c.execute("SELECT id FROM libros WHERE titulo = ?", (titulo,))
                 libro = c.fetchone()
                 c.execute("SELECT id FROM usuarios WHERE nombre = ?", (self._name,))
                 user = c.fetchone()
-
                 if libro and user:
                     c.execute("DELETE FROM prestamos WHERE usuario_id = ? AND libro_id = ?", (user[0], libro[0]))
                     c.execute("UPDATE libros SET prestado = 0 WHERE id = ?", (libro[0],))
-                    self._borrow_history.remove(book)  # Eliminar el libro del historial
-                    return f"✅ Libro devuelto: {book.get_titulo()}"
+                    self._borrow_history.remove(titulo)
+                    return f"✅ Devolución realizada: {titulo}"
                 else:
-                    return "❌ No se pudo encontrar el libro o usuario para devolver."
+                    return "❌ No se encontró el libro o usuario."
         else:
-            return f"❌ {self._name} no tiene el libro: {book.get_titulo()}."
+            return f"⚠️ El libro '{titulo}' no fue prestado por este usuario."
+

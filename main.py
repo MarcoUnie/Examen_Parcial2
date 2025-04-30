@@ -4,6 +4,7 @@ from clase_empleado import Employee
 from clase_usuario import User
 from clase_libro_genero import generolibro
 from clase_libros import Book
+import sqlite3
 
 empleado = Employee("Admin")
 usuarios_creados = {}  # Almacenar instancias de usuarios en memoria
@@ -37,8 +38,20 @@ def realizar_devolucion(nombre_usuario, titulo_libro):
         return "❌ Usuario no encontrado."
     user = usuarios_creados[nombre_usuario]
     book = Book(titulo_libro, "", generolibro.FICTION)
-    user.return_book(book)
-    return "✅ Devolución procesada."
+    # Verifica en la base de datos si ese usuario ha prestado ese libro
+    with sqlite3.connect("biblioteca.db") as conn:
+        c = conn.cursor()
+        c.execute("SELECT u.id, l.id FROM usuarios u, libros l WHERE u.nombre = ? AND l.titulo = ?", (nombre_usuario, titulo_libro))
+        resultado = c.fetchone()
+        if not resultado:
+            return "❌ Usuario o libro no encontrado."
+        usuario_id, libro_id = resultado
+        c.execute("SELECT * FROM prestamos WHERE usuario_id = ? AND libro_id = ?", (usuario_id, libro_id))
+        prestamo = c.fetchone()
+        if not prestamo:
+            return "⚠️ El libro no fue prestado a este usuario."
+    resultado = user.return_book(book)
+    return resultado
 
 # Interfaz Gradio
 with gr.Blocks() as demo:

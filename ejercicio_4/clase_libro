@@ -1,4 +1,4 @@
-from class_book_genre import generolibro
+from clase_libro_genero import generolibro
 class Book:
     def __init__(self, titulo, autor, genero: generolibro):
         self._titulo = titulo

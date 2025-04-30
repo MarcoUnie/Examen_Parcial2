@@ -1,5 +1,5 @@
-from ejercicio_4.clase_libro_genero import generolibro
-from ejercicio_4.clase_libro import Book
+from clase_libros import Book
+from clase_libro_genero import generolibro
 class User:
     def __init__(self, name):
         self._name = name
@@ -12,15 +12,15 @@ class User:
         return self._borrow_history
 
     def borrow_book(self, book: Book):
-        if book.borrow():
+        if book.prestado():
             self._borrow_history.append(book)
-            print(f"{self._name} ha tomado prestado: {book.get_title()}")
+            print(f"{self._name} ha tomado prestado: {book.get_titulo()}")
         else:
-            print(f"{book.get_title()} no está disponible para préstamo.")
+            print(f"{book.get_titulo()} no está disponible para préstamo.")
 
     def return_book(self, book: Book):
         if book in self._borrow_history:
             book.return_book()
-            print(f"{self._name} ha devuelto: {book.get_title()}")
+            print(f"{self._name} ha devuelto: {book.get_titulo()}")
         else:
             print(f"{self._name} no tiene ese libro.")

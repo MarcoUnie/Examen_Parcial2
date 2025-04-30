@@ -1,10 +1,11 @@
 from clase_libro_genero import generolibro
+
 class Book:
     def __init__(self, titulo, autor, genero: generolibro):
         self._titulo = titulo
         self._autor = autor
         self._genero = genero
-        self._is_prestado = False
+        self._is_prestado = False  # Estado de disponibilidad
 
     def get_titulo(self):
         return self._titulo
@@ -16,9 +17,9 @@ class Book:
         return self._genero
 
     def is_disponible(self):
-        return not self._is_prestado
+        return not self._is_prestado  # Si no está prestado, está disponible
 
-    # Setters
+    # Métodos Setter
     def set_titulo(self, titulo):
         self._titulo = titulo
 
@@ -36,4 +37,3 @@ class Book:
 
     def return_book(self):
         self._is_prestado = False
-        
